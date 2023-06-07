@@ -1,12 +1,47 @@
 import java.util.*;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
+import java.io.FileWriter;
 
 /**
  * tp1
  */
+public class tp1 {
+
+    public static void main(String[] args) {
+        solution sol = new solution();
+        sol.launch(args);
+
+        /* Testing purposes */
+
+        ArrayList<Warehouse> haver = sol.getHaversine();
+        for (Warehouse some : haver) {
+            System.out.println(some.getDistance() + " " + some.getBoxAmount() + " cords: " + some.getOriginalCoords()[0]
+                    + "    " + some.getOriginalCoords()[1]);
+        }
+        System.out.println();
+
+        int[] boxes = sol.getBoxes();
+        System.out.print("Boxes: ");
+        for (int box : boxes) {
+            System.out.print(box + " ");
+        }
+        System.out.println();
+
+        double[][] boxesPosition = sol.getBoxesPosition();
+        System.out.println("Boxes Position:");
+        for (double[] position : boxesPosition) {
+            for (double coordinate : position) {
+                System.out.print(coordinate + " ");
+            }
+            System.out.println();
+        }
+
+    }
+}
 
 class Warehouse {
     private double distance;
@@ -28,7 +63,7 @@ class Warehouse {
     }
 
     public double[] getOriginalCoords() {
-        return  originalCoords;
+        return originalCoords;
     }
 }
 
@@ -39,16 +74,17 @@ class solution {
     private int truckMax;
     private double[] truckCoords;
     private ArrayList<Warehouse> haversine;
+    private String[] args;
 
-
-    public void launch() {
+    public void launch(String[] args) {
+        this.args = args;
         parseFile();
         findNextStop();
     }
 
     public void parseFile() {
         // STEP 1: PARSING
-        String filePath = "./camion_entrepot.txt";
+        String filePath = "./" + args[0];
 
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             String line = br.readLine();
@@ -91,12 +127,10 @@ class solution {
             System.err.println("Error reading the file: " + e.getMessage());
         }
 
-        
-
     }
 
     public void convertToDist() {
-        int r = 6371000; //earth radius
+        int r = 6371000; // earth radius
         haversine = new ArrayList<>();
         int i = 0;
         for (double[] position : boxesPosition) {
@@ -104,9 +138,9 @@ class solution {
             i++;
             double lat = position[0];
             double lon = position[1];
-            //haversine
-            double in = Math.sqrt(Math.pow(Math.sin((lat-truckCoords[0])/2), 2) +
-                    Math.cos(truckCoords[0]) * Math.cos(lat) * Math.pow(Math.sin((lon-truckCoords[1])/2), 2));
+            // haversine
+            double in = Math.sqrt(Math.pow(Math.sin((lat - truckCoords[0]) / 2), 2) +
+                    Math.cos(truckCoords[0]) * Math.cos(lat) * Math.pow(Math.sin((lon - truckCoords[1]) / 2), 2));
             double distance = 2 * r * Math.asin(in);
             haversine.add(new Warehouse(distance, amount, position));
         }
@@ -114,18 +148,55 @@ class solution {
 
     /* Algorithm */
     public void findNextStop() {
-        //Initialize Truck Position
+        // Initialize Truck Position
         int max[] = findMaxBoxes();
         updateState(max);
-        //Initialize truck coordinates
+        // Initialize truck coordinates
         truckCoords = boxesPosition[max[1]];
         convertToDist();
-        //heapSort
+        // heapSort
         sort();
-        do {
-            //Traverse until max capacity
-        }while (boxAmount != truckMax);
-        //print out final results TODO
+        try {
+            BufferedWriter output = new BufferedWriter(new FileWriter(args[1], true));
+
+            output.append("Truck position: (" + haversine.get(0).getOriginalCoords()[0] + " , "
+                    + haversine.get(0).getOriginalCoords()[1] + ")\n");
+
+            int i = 0;
+            int currBoxes = 0;
+
+            // Traverse until max capacity
+            while (currBoxes < truckMax) {
+                Warehouse currWarehouse = haversine.get(i);
+                currBoxes = currBoxes + currWarehouse.getBoxAmount();
+
+                int num = Math.max(0, currBoxes - truckMax);
+                int distance = (int) Math.floor(currWarehouse.getDistance());
+
+                String line = "Distance:" + distance;
+
+                int spaces = 15 - Integer.toString(distance).length();
+                for (int j = 0; j < spaces; j++)
+                    line += " ";
+
+                line += "   Number of boxes:" + num;
+                spaces = 15 - Integer.toString(num).length();
+                for (int j = 0; j < spaces; j++)
+                    line += " ";
+
+                line += "   Position:" + "(" + currWarehouse.getOriginalCoords()[0] + ","
+                        + currWarehouse.getOriginalCoords()[1] + ")\n";
+
+                System.out.println(line);
+                output.append(line);
+                output.flush();
+
+                i++;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public int[] findMaxBoxes() {
@@ -147,35 +218,35 @@ class solution {
     public void updateState(int[] info) {
         int addedBoxes = info[0];
         int newAmount = boxAmount + addedBoxes;
-        //update cargo amount
-        if( newAmount > truckMax ) {
+        // update cargo amount
+        if (newAmount > truckMax) {
             boxAmount = truckMax;
-            //update Warehouse content TODO
-        }else {
+            // update Warehouse content TODO
+        } else {
             boxAmount = newAmount;
-            //update Warehouse content TODO
+            // update Warehouse content TODO
         }
     }
 
-    public void heapify(int n, int i){
+    public void heapify(int n, int i) {
         int largest = i;
-        int l = 2 * i ;
+        int l = 2 * i;
         int r = 2 * i + 1;
         Warehouse leftWare = haversine.get(l);
         Warehouse rightWare = haversine.get(r);
         Warehouse root = haversine.get(largest);
 
-        //if left child bigger than root
+        // if left child bigger than root
         if (l < n && leftWare.getDistance() > root.getDistance()) {
             largest = l;
         }
 
-        //if right child larger
+        // if right child larger
         if (r < n && rightWare.getDistance() > root.getDistance()) {
             largest = r;
         }
 
-        //if root changed, then swap.
+        // if root changed, then swap.
         if (largest != i) {
             Warehouse swap = haversine.get(i);
             Warehouse temp = haversine.get(largest);
@@ -186,10 +257,10 @@ class solution {
         }
     }
 
-    //sort haversine with .getDistance, use a FiFo structure (heap)
-    public void sort(){
+    // sort haversine with .getDistance, use a FiFo structure (heap)
+    public void sort() {
         int n = haversine.size();
-        //build heap
+        // build heap
         for (int i = n / 2 - 1; i >= 0; i--) {
             heapify(n, i);
         }
@@ -203,59 +274,26 @@ class solution {
 
     }
 
-
     /* Testing purposes */
 
-    public double[][] getBoxesPosition(){
+    public double[][] getBoxesPosition() {
         return boxesPosition;
     }
-    public int[] getBoxes(){
+
+    public int[] getBoxes() {
         return boxes;
     }
-    public int getBoxAmount(){
+
+    public int getBoxAmount() {
         return boxAmount;
     }
-    public int getTruckMax(){
+
+    public int getTruckMax() {
         return truckMax;
     }
 
-    public ArrayList<Warehouse> getHaversine(){
+    public ArrayList<Warehouse> getHaversine() {
         return haversine;
     }
 
-
-}
-
-public class tp1 {
-
-    public static void main(String[] args) {
-        solution sol = new solution();
-        sol.launch();
-
-        /* Testing purposes */
-
-        ArrayList<Warehouse> haver = sol.getHaversine();
-        for (Warehouse some : haver){
-            System.out.println(some.getDistance()+ " " + some.getBoxAmount() + " " + some.getOriginalCoords()) ;
-        }
-        System.out.println();
-
-        int[] boxes = sol.getBoxes();
-        System.out.print("Boxes: ");
-        for (int box : boxes) {
-            System.out.print(box + " ");
-        }
-        System.out.println();
-
-
-        double[][] boxesPosition = sol.getBoxesPosition();
-        System.out.println("Boxes Position:");
-        for (double[] position : boxesPosition) {
-            for (double coordinate : position) {
-                System.out.print(coordinate + " ");
-            }
-            System.out.println();
-        }
-
-    }
 }
