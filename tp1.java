@@ -120,9 +120,12 @@ class solution {
         //Initialize truck coordinates
         truckCoords = boxesPosition[max[1]];
         convertToDist();
+        //heapSort
+        sort();
         do {
-            //Traverse
+            //Traverse until max capacity
         }while (boxAmount != truckMax);
+        //print out final results TODO
     }
 
     public int[] findMaxBoxes() {
@@ -154,13 +157,49 @@ class solution {
         }
     }
 
-    public void merge(int[] arr1, double[][] arr2){
-        // On fait un troisieme array de la taille des deux autres
-        // [ (int,[double, double]) ]
+    public void heapify(int n, int i){
+        int largest = i;
+        int l = 2 * i ;
+        int r = 2 * i + 1;
+        Warehouse leftWare = haversine.get(l);
+        Warehouse rightWare = haversine.get(r);
+        Warehouse root = haversine.get(largest);
 
+        //if left child bigger than root
+        if (l < n && leftWare.getDistance() > root.getDistance()) {
+            largest = l;
+        }
+
+        //if right child larger
+        if (r < n && rightWare.getDistance() > root.getDistance()) {
+            largest = r;
+        }
+
+        //if root changed, then swap.
+        if (largest != i) {
+            Warehouse swap = haversine.get(i);
+            Warehouse temp = haversine.get(largest);
+            haversine.set(i, temp);
+            haversine.set(largest, swap);
+
+            heapify(n, largest);
+        }
     }
 
+    //sort haversine with .getDistance, use a FiFo structure (heap)
     public void sort(){
+        int n = haversine.size();
+        //build heap
+        for (int i = n / 2 - 1; i >= 0; i--) {
+            heapify(n, i);
+        }
+        for (int i = n - 1; i > 0; i--) {
+            Warehouse current = haversine.get(i);
+            Warehouse temp = haversine.get(0);
+            haversine.set(0, current);
+            haversine.set(i, temp);
+            heapify(i, 0);
+        }
 
     }
 
