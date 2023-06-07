@@ -8,21 +8,27 @@ import java.io.LineNumberReader;
  * tp1
  */
 
-class Tuple {
-    private double doubleValue;
-    private int intValue;
+class Warehouse {
+    private double distance;
+    private int boxAmount;
+    private double[] originalCoords;
 
-    public Tuple(double doubleValue, int intValue) {
-        this.doubleValue = doubleValue;
-        this.intValue = intValue;
+    public Warehouse(double doubleValue, int intValue, double[] originalCoords) {
+        this.distance = doubleValue;
+        this.boxAmount = intValue;
+        this.originalCoords = originalCoords;
     }
 
-    public double getDoubleValue() {
-        return doubleValue;
+    public double getDistance() {
+        return distance;
     }
 
-    public int getIntValue() {
-        return intValue;
+    public int getBoxAmount() {
+        return boxAmount;
+    }
+
+    public double[] getOriginalCoords() {
+        return  originalCoords;
     }
 }
 
@@ -32,7 +38,7 @@ class solution {
     private int boxAmount;
     private int truckMax;
     private double[] truckCoords;
-    private ArrayList<Tuple> haversine;
+    private ArrayList<Warehouse> haversine;
 
 
     public void launch() {
@@ -89,7 +95,7 @@ class solution {
 
     }
 
-    public void convertToDist(double[] truckCoords) {
+    public void convertToDist() {
         int r = 6371000; //earth radius
         haversine = new ArrayList<>();
         int i = 0;
@@ -102,7 +108,7 @@ class solution {
             double in = Math.sqrt(Math.pow(Math.sin((lat-truckCoords[0])/2), 2) +
                     Math.cos(truckCoords[0]) * Math.cos(lat) * Math.pow(Math.sin((lon-truckCoords[1])/2), 2));
             double distance = 2 * r * Math.asin(in);
-            haversine.add(new Tuple(distance, amount));
+            haversine.add(new Warehouse(distance, amount, position));
         }
     }
 
@@ -113,7 +119,7 @@ class solution {
         updateState(max);
         //Initialize truck coordinates
         truckCoords = boxesPosition[max[1]];
-        convertToDist(truckCoords);
+        convertToDist();
         do {
             //Traverse
         }while (boxAmount != truckMax);
@@ -174,7 +180,7 @@ class solution {
         return truckMax;
     }
 
-    public ArrayList<Tuple> getHaversine(){
+    public ArrayList<Warehouse> getHaversine(){
         return haversine;
     }
 
@@ -189,9 +195,9 @@ public class tp1 {
 
         /* Testing purposes */
 
-        ArrayList<Tuple> haver = sol.getHaversine();
-        for (Tuple some : haver){
-            System.out.println(some.getDoubleValue()+ " " + some.getIntValue());
+        ArrayList<Warehouse> haver = sol.getHaversine();
+        for (Warehouse some : haver){
+            System.out.println(some.getDistance()+ " " + some.getBoxAmount() + " " + some.getOriginalCoords()) ;
         }
         System.out.println();
 
