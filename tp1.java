@@ -110,11 +110,13 @@ class solution {
         for (double[] position : boxesPosition) {
             int amount = boxes[i];
             i++;
-            double lat = position[0];
-            double lon = position[1];
+            double lat = Math.toRadians(position[0]);
+            double lon = Math.toRadians(position[1]);
+            double truckLat = Math.toRadians(truckCoords[0]);
+            double truckLon = Math.toRadians(truckCoords[1]);
             // haversine
-            double in = Math.sqrt(Math.pow(Math.sin((lat - truckCoords[0]) / 2), 2) +
-                    Math.cos(truckCoords[0]) * Math.cos(lat) * Math.pow(Math.sin((lon - truckCoords[1]) / 2), 2));
+            double in = Math.sqrt(Math.pow(Math.sin((lat - truckLat) / 2), 2) +
+                    Math.cos(truckLat) * Math.cos(lat) * Math.pow(Math.sin((lon - truckLon) / 2), 2));
             double distance = 2 * r * Math.asin(in);
             haversine.add(new Warehouse(distance, amount, position));
         }
