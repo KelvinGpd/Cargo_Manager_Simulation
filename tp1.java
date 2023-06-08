@@ -146,11 +146,11 @@ class solution {
                 boxAmount = boxAmount + currWarehouse.getBoxAmount();
 
                 int num = Math.max(0, boxAmount - truckMax);
-                int distance = (int) Math.floor(currWarehouse.getDistance());
+                Double distance = Math.floor(currWarehouse.getDistance() * 10) / 10;
 
                 String line = "Distance:" + distance;
 
-                int spaces = 15 - Integer.toString(distance).length();
+                int spaces = 15 - Double.toString(distance).length();
                 for (int j = 0; j < spaces; j++)
                     line += " ";
 
@@ -186,6 +186,28 @@ class solution {
         return position;
     }
 
+    public boolean isBiggerThan(Warehouse w, Warehouse root) {
+        // On compare la distance, si c'est egal, lat et puis longitude
+        if (w.getDistance() > root.getDistance()) {
+            return true;
+        } else if (w.getDistance() == root.getDistance()) {
+            // Si la latitude est plus grande, alors w est plus "grand"
+            if (w.getOriginalCoords()[0] > root.getOriginalCoords()[0]) {
+                return true;
+            } else if (w.getOriginalCoords()[0] < root.getOriginalCoords()[0]) {
+                return false;
+            } else {
+                if (w.getOriginalCoords()[1] > root.getOriginalCoords()[1]) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        } else
+            return false;
+
+    }
+
     public void heapify(int n, int i) {
         int largest = i;
         int l = 2 * i;
@@ -195,12 +217,12 @@ class solution {
         Warehouse root = haversine.get(largest);
 
         // if left child bigger than root
-        if (l < n && leftWare.getDistance() > root.getDistance()) {
+        if (l < n && isBiggerThan(leftWare, root)) {
             largest = l;
         }
 
         // if right child larger
-        if (r < n && rightWare.getDistance() > root.getDistance()) {
+        if (r < n && isBiggerThan(rightWare, root)) {
             largest = r;
         }
 
