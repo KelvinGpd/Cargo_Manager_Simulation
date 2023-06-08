@@ -14,32 +14,6 @@ public class tp1 {
     public static void main(String[] args) {
         solution sol = new solution();
         sol.launch(args);
-
-        /* Testing purposes */
-
-        ArrayList<Warehouse> haver = sol.getHaversine();
-        for (Warehouse some : haver) {
-            System.out.println(some.getDistance() + " " + some.getBoxAmount() + " cords: " + some.getOriginalCoords()[0]
-                    + "    " + some.getOriginalCoords()[1]);
-        }
-        System.out.println();
-
-        int[] boxes = sol.getBoxes();
-        System.out.print("Boxes: ");
-        for (int box : boxes) {
-            System.out.print(box + " ");
-        }
-        System.out.println();
-
-        double[][] boxesPosition = sol.getBoxesPosition();
-        System.out.println("Boxes Position:");
-        for (double[] position : boxesPosition) {
-            for (double coordinate : position) {
-                System.out.print(coordinate + " ");
-            }
-            System.out.println();
-        }
-
     }
 }
 
@@ -149,28 +123,27 @@ class solution {
     /* Algorithm */
     public void findNextStop() {
         // Initialize Truck Position
-        int max[] = findMaxBoxes();
-        updateState(max);
+        int initPos = findMaxBoxes();
         // Initialize truck coordinates
-        truckCoords = boxesPosition[max[1]];
+        truckCoords = boxesPosition[initPos];
         convertToDist();
         // heapSort
         sort();
         try {
             BufferedWriter output = new BufferedWriter(new FileWriter(args[1], true));
 
-            output.append("Truck position: (" + haversine.get(0).getOriginalCoords()[0] + " , "
-                    + haversine.get(0).getOriginalCoords()[1] + ")\n");
-
+            output.append("Truck position: (" + truckCoords[0] + " , "
+                    + truckCoords[1] + ")\n");
             int i = 0;
-            int currBoxes = 0;
+            boxAmount = 0;
 
             // Traverse until max capacity
-            while (currBoxes < truckMax) {
-                Warehouse currWarehouse = haversine.get(i);
-                currBoxes = currBoxes + currWarehouse.getBoxAmount();
 
-                int num = Math.max(0, currBoxes - truckMax);
+            while (boxAmount < truckMax) {
+                Warehouse currWarehouse = haversine.get(i);
+                boxAmount = boxAmount + currWarehouse.getBoxAmount();
+
+                int num = Math.max(0, boxAmount - truckMax);
                 int distance = (int) Math.floor(currWarehouse.getDistance());
 
                 String line = "Distance:" + distance;
@@ -199,7 +172,7 @@ class solution {
         }
     }
 
-    public int[] findMaxBoxes() {
+    public int findMaxBoxes() {
         int temp = Integer.MIN_VALUE;
         int position = -1;
         for (int i = 0; i < boxes.length; i++) {
@@ -209,23 +182,7 @@ class solution {
                 position = i;
             }
         }
-        int max[] = new int[2];
-        max[0] = temp;
-        max[1] = position;
-        return max;
-    }
-
-    public void updateState(int[] info) {
-        int addedBoxes = info[0];
-        int newAmount = boxAmount + addedBoxes;
-        // update cargo amount
-        if (newAmount > truckMax) {
-            boxAmount = truckMax;
-            // update Warehouse content TODO
-        } else {
-            boxAmount = newAmount;
-            // update Warehouse content TODO
-        }
+        return position;
     }
 
     public void heapify(int n, int i) {
@@ -272,28 +229,6 @@ class solution {
             heapify(i, 0);
         }
 
-    }
-
-    /* Testing purposes */
-
-    public double[][] getBoxesPosition() {
-        return boxesPosition;
-    }
-
-    public int[] getBoxes() {
-        return boxes;
-    }
-
-    public int getBoxAmount() {
-        return boxAmount;
-    }
-
-    public int getTruckMax() {
-        return truckMax;
-    }
-
-    public ArrayList<Warehouse> getHaversine() {
-        return haversine;
     }
 
 }
