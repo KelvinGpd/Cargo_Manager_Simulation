@@ -25,10 +25,10 @@ public class tests {
             if (directoryListing != null) {
                 for (File child : directoryListing) {
                     String[] awns = { child.getAbsolutePath(), "reponse.txt" };
-                    long start = System.currentTimeMillis();
-                    sol.launch(awns);
-                    long finish = System.currentTimeMillis();
-                    output.append(Long.toString(finish - start));
+                    long start = System.nanoTime();
+                    String ok = sol.launch(awns);
+                    long finish = System.nanoTime();
+                    output.append(child.getName() + "        " + Long.toString(finish - start) + "\n");
                     output.flush();
                 }
             } else {
@@ -73,16 +73,19 @@ class solution {
     private double[] truckCoords;
     private ArrayList<Warehouse> haversine;
     private String[] args;
+    private int maxSize;
+    private int stopReading;
 
     public String convertToCSV(String[] data) {
         return Stream.of(data)
                 .collect(Collectors.joining(","));
     }
 
-    public void launch(String[] args) {
+    public String launch(String[] args) {
         this.args = args;
         parseFile();
         findNextStop();
+        return "done";
     }
 
     public void parseFile() {
@@ -103,6 +106,7 @@ class solution {
             boxes = new int[size];
             boxesPosition = new double[size][2];
             int i = 0;
+
             while ((line = br.readLine()) != null) {
 
                 scanner = new Scanner(line);
@@ -122,7 +126,7 @@ class solution {
                     i++;
 
                 }
-
+                stopReading = i;
             }
         } catch (IOException e) {
             System.err.println("Error reading the file: " + e.getMessage());
@@ -135,6 +139,9 @@ class solution {
         haversine = new ArrayList<>();
         int i = 0;
         for (double[] position : boxesPosition) {
+            if (i >= stopReading) {
+                return;
+            }
             int amount = boxes[i];
             i++;
             double lat = Math.toRadians(position[0]);
@@ -145,7 +152,10 @@ class solution {
             double in = Math.sqrt(Math.pow(Math.sin((lat - truckLat) / 2), 2) +
                     Math.cos(truckLat) * Math.cos(lat) * Math.pow(Math.sin((lon - truckLon) / 2), 2));
             double distance = 2 * r * Math.asin(in);
-            haversine.add(new Warehouse(distance, amount, position));
+            if (!(position[0] == 0 && position[1] == 0)) {
+                haversine.add(new Warehouse(distance, amount, position));
+            }
+
         }
     }
 
@@ -238,19 +248,27 @@ class solution {
         int largest = i;
         int l = 2 * i;
         int r = 2 * i + 1;
-        Warehouse leftWare = haversine.get(l);
-        Warehouse rightWare = haversine.get(r);
+
+        Warehouse leftWare;
+        Warehouse rightWare;
         Warehouse root = haversine.get(largest);
 
-        // if left child bigger than root
-        if (l < n && isBiggerThan(leftWare, root)) {
-            largest = l;
+        if (l < maxSize) {
+            leftWare = haversine.get(l);
+            if (l < n && isBiggerThan(leftWare, root)) {
+                largest = l;
+            }
+        }
+        if (r < maxSize) {
+            rightWare = haversine.get(r);
+            if (r < n && isBiggerThan(rightWare, haversine.get(largest))) {
+                largest = r;
+            }
         }
 
+        // if left child bigger than root
+
         // if right child larger
-        if (r < n && isBiggerThan(rightWare, root)) {
-            largest = r;
-        }
 
         // if root changed, then swap.
         if (largest != i) {
@@ -266,16 +284,19 @@ class solution {
     // sort haversine with .getDistance, use a FiFo structure (heap)
     public void sort() {
         int n = haversine.size();
+        maxSize = n;
         // build heap
-        for (int i = n / 2 - 1; i >= 0; i--) {
+        for (int i = (n / 2) - 1; i >= 0; i--) {
             heapify(n, i);
         }
         for (int i = n - 1; i > 0; i--) {
+            maxSize = i;
             Warehouse current = haversine.get(i);
             Warehouse temp = haversine.get(0);
             haversine.set(0, current);
+            // Temp = max
             haversine.set(i, temp);
-            heapify(i, 0);
+            heapify(maxSize, 0);
         }
 
     }
