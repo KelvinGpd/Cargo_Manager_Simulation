@@ -160,7 +160,6 @@ class solution {
                 line += "   Position:" + "(" + currWarehouse.getOriginalCoords()[0] + ","
                         + currWarehouse.getOriginalCoords()[1] + ")\n";
 
-                System.out.println(line);
                 output.append(line);
                 output.flush();
 
@@ -230,5 +229,4 @@ class solution {
         }
 
     }
-
 }
