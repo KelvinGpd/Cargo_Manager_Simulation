@@ -1,6 +1,9 @@
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
@@ -9,11 +12,32 @@ import java.io.FileWriter;
 /**
  * tp1
  */
-public class tp1 {
+public class tests {
 
     public static void main(String[] args) {
-        solution sol = new solution();
-        sol.launch(args);
+        try {
+            BufferedWriter output = new BufferedWriter(new FileWriter("times.txt", true));
+            solution sol = new solution();
+
+            File dir = new File("./tests");
+            File[] directoryListing = dir.listFiles();
+
+            if (directoryListing != null) {
+                for (File child : directoryListing) {
+                    String[] awns = { child.getAbsolutePath(), "reponse.txt" };
+                    long start = System.currentTimeMillis();
+                    sol.launch(awns);
+                    long finish = System.currentTimeMillis();
+                    output.append(Long.toString(finish - start));
+                    output.flush();
+                }
+            } else {
+
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 }
 
@@ -50,6 +74,11 @@ class solution {
     private ArrayList<Warehouse> haversine;
     private String[] args;
 
+    public String convertToCSV(String[] data) {
+        return Stream.of(data)
+                .collect(Collectors.joining(","));
+    }
+
     public void launch(String[] args) {
         this.args = args;
         parseFile();
@@ -58,16 +87,15 @@ class solution {
 
     public void parseFile() {
         // STEP 1: PARSING
-        String filePath = "./" + args[0];
 
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(args[0]))) {
             String line = br.readLine();
 
             Scanner scanner = new Scanner(line);
             boxAmount = scanner.nextInt();
             truckMax = scanner.nextInt();
 
-            LineNumberReader reader = new LineNumberReader(new FileReader(filePath));
+            LineNumberReader reader = new LineNumberReader(new FileReader(args[0]));
             reader.skip(Integer.MAX_VALUE);
             int size = (reader.getLineNumber() - 1) * 2; // Bound le nombre maximal de inputs
             reader.close();
@@ -84,7 +112,6 @@ class solution {
 
                 boxesPosition[i][0] = scanner.nextDouble();
                 boxesPosition[i][1] = scanner.nextDouble();
-
                 i++;
 
                 if (scanner.hasNext()) {
@@ -114,7 +141,6 @@ class solution {
             double lon = Math.toRadians(position[1]);
             double truckLat = Math.toRadians(truckCoords[0]);
             double truckLon = Math.toRadians(truckCoords[1]);
-            System.out.println(position[0]);
             // haversine
             double in = Math.sqrt(Math.pow(Math.sin((lat - truckLat) / 2), 2) +
                     Math.cos(truckLat) * Math.cos(lat) * Math.pow(Math.sin((lon - truckLon) / 2), 2));
@@ -168,7 +194,6 @@ class solution {
 
                 i++;
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
